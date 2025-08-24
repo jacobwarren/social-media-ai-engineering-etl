@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+.mypy_cache/
+.pytest_cache/
+.cache/
+.coverage*
+.ipynb_checkpoints/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Build artifacts
+build/
+dist/
+
+# ---------------------------------------------
+# Pipeline artifacts (standardized + reports)
+# ---------------------------------------------
+# All run outputs written by the ETL live here
+# (manifest.json, stage JSONL/CSV/Parquet, contracts, etc.)
+data/processed/
+# One-off tmp working directory used by flows/demos
+tmp/
+# Reports (per-run plots, CSVs/Parquet, markdown reports)
+reports/
+
+# Contract files written next to artifacts
+*.contract.json
+
+# Stage adhoc defaults (when running scripts without --run-id)
+# e.g., step-9-posts-with-tone.jsonl, step-11-..., step-14-...
+step-*.jsonl
+step-*.csv
+
+# Common artifact formats produced by stages
+*.parquet
+*.csv
+*.jsonl
+
+# Training/evaluation outputs (when running 25/26/27 or reward evals)
+checkpoints/
+outputs/
+runs/
+wandb/
+lightning_logs/
+mlruns/
+logs/
+# TensorBoard
+*.tfevents.*
+
+# OS/editor junk
+.DS_Store
+*.swp
+*.swo
+

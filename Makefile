@@ -75,5 +75,18 @@ flow:
 demo:
 	streamlit run app/score_app.py -- --weights training/rewards/weights.example.json
 
+# Training shortcuts
+.PHONY: train-sft train-grpo experiment
+
+train-sft:
+	$(PYTHON) 25-train-sft.py --run-id $(RUN_ID) --base-dir $(BASE_DIR) --models-dir models
+
+train-grpo:
+	cd models/$(RUN_ID) && $(PYTHON) ../../pipe/26-train-grpo.py --run-id $(RUN_ID) --use-aggregator --weights ../../pipe/training/rewards/weights.example.json
+
+experiment:
+	$(PYTHON) 27-experiment.py --run-id $(RUN_ID) --base-dir $(BASE_DIR) --stage auto
+
+
 
 

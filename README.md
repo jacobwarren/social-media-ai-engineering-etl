@@ -1,14 +1,17 @@
-# LinkedIn Post ETL: Reproducible, Manifest‑Driven Pipeline (01 → 23)
+# Social Media AI Engineering ETL
 
-A modern, manifest‑driven ETL that turns social posts into training‑ready datasets for LLM fine‑tuning. Heavy NLP (spaCy, NLTK) and vLLM are preserved; the system is optimized for performance, reproducibility, and multiple runs.
+A manifest‑driven pipeline that turns social posts into training‑ready datasets for LLM fine‑tuning. Designed for fast setup, clear outputs, and repeatable runs.
 
-## Key capabilities
+This is the exact pipeline I used to build the LinkedIn model for the SaaS I shutdown, GrowGlad, and the smaller demo model I released, [LinkedQwen](https://huggingface.co/jacobpwarren/LinkedQwen2.5-14B-Instruct).
 
-- Reproducible run‑id mode with manifest.json lineage and signature‑based skipping
-- Standardized artifacts in data/processed/{RUN_ID}/ with stage‑numbered filenames
-- vLLM guided decoding for structure (Stage 03); spaCy/NLTK writing‑style extraction (Stage 17)
-- Prompt generation (Stage 18), dataset assembly (Stage 22), and balanced SFT/DPO splits (Stage 23)
-- Deterministic seeding, logfmt logging, and validation gates before manifest updates
+## What you get
+
+- One command from raw JSONL to training splits (SFT and DPO)
+- Clear outputs under data/processed/{RUN_ID}/ plus a manifest.json for easy re‑runs
+- Prompt generation (18), dataset assembly (22), and final splits (23)
+- Works on A100/H100; tested with Qwen2.5‑7B, Mistral-Nemo-2407, Qwen3-32B, and Llama‑3.1‑8B
+- Simple follow‑on training scripts for SFT (25) and GRPO (26)
+- Reward functions for tone, hashtags, emoji, length, structure, and more
 
 ## Quickstart
 
@@ -20,7 +23,7 @@ make smoke           # smoke test for 1 -> 2 -> 3 using run-id ergonomics
 make run-tail RUN_ID=demo  # tail-only: 17-18, 22-23 (assumes features already exist for RUN_ID)
 ```
 
-Inputs: use the tiny demo dataset `../course-dataset-clean.jsonl` (we’ll keep ~25 rows).
+Inputs: use the tiny demo dataset `./example-dataset.jsonl`.
 
 ## Hardware requirements
 
@@ -83,14 +86,6 @@ Written under `data/processed/{RUN_ID}/`:
 
 A `manifest.json` in the same folder records inputs, outputs, config signature, and timestamps.
 
-## Why this matters
-
-Training data pipelines for LLMs often break on reproducibility and scale. This repo shows:
-
-- How to preserve heavy computation (vLLM, spaCy, NLTK) while adding run‑id manifests,
-  deterministic seeding, and validation gates
-- How to produce standardized, training‑ready artifacts for SFT/DPO/GRPO workflows
-- How to optimize for multi‑run workflows with signature‑based skipping and reporting
 
 ## Architecture (DAG)
 
@@ -114,9 +109,9 @@ flowchart TD
 
 ## Philosophy (Emulate Framework)
 
-This pipeline is aligned with my “Emulate” approach: begin with the workflow you want to automate, encode expert‑style signals (features), and then package standardized supervision data for model training. The high‑level summary below provides context for why we focused on expert‑style feature extraction and standardized training artifacts.
+This pipeline is aligned with my "Emulate" approach: begin with the workflow you want to automate, encode expert‑style signals (features), and then package standardized supervision data for model training. The high‑level summary below provides context for why I on expert‑style feature extraction and standardized training artifacts.
 
-### Executive Summary
+### Overview
 Most AI deployments are information‑centric and underwhelming. The Emulate Framework is workflow‑first: it reverse‑engineers expert processes and encodes differentiating signals into AI capabilities that deliver measurable efficiency gains.
 
 - Problem: information bots ≠ automated workflows; low leverage
@@ -134,7 +129,7 @@ Most AI deployments are information‑centric and underwhelming. The Emulate Fra
 - Phase 2: Expert Style Fingerprinting (strategic data collection, differential feature engineering, impact validation, implementation)
 - Phase 3: Modeling & Delivery (architectures, development/validation, packaging, implementation prep)
 
-See the full philosophy section at the end of this README for the complete framework.
+See the full philosophy at [Emulate Framework](https://emulateframework.ai).
 
 ## Usage (selected commands)
 
@@ -147,34 +142,62 @@ See the full philosophy section at the end of this README for the complete frame
 - Feature extraction only (with cleaners):
   - `make run-features RUN_ID=demo`
 
-## Additional topics
+## Reward design
 
-- Ablation outputs (Stage 4): micro‑ablation over structures with plots and a summary report
-- Data versioning (Git LFS): Parquet and contract files tracked via LFS
-- Reward aggregator and evaluation: modular rewards with weights + CPU‑only eval
-- Orchestration (Prefect): optional flow for 17-23 + reward evaluation
-- Streamlit demo: minimal scoring UI
+My reward functions are the **inverse** of the feature engineering functions that created the dataset. During GRPO, the model is scored on the same measurable constraints (tone, bullets, length, emoji, structure, coherence) that originally defined the training data. This creates tight alignment between data specification and optimization.
 
-## Validation and skip behavior
+**Feature ↔ Reward symmetry:**
+- Bullet style extraction -> bullet_style_reward_func
+- Tone analysis -> tone_alignment_reward_func
+- Emoji usage patterns -> emoji_usage_reward + emoji_variety_reward
+- Post length constraints -> precise_post_length_reward
+- Sentence structure -> sentence_structure_reward_func
+- Topic consistency -> semantic_coherence_reward
+- Narrative flow -> narrative_structure_reward_func
 
-Each stage computes a signature from inputs + config + stage_version and skips when unchanged. Validation gates ensure only successful outputs are written to the manifest:
+**Tacit feature engineering:** I reverse-engineer human writing patterns that are hard to specify directly (pacing, sentiment arcs, vocabulary richness, punctuation style) into measurable functions. The model learns to "emulate" these tacit human approaches through explicit reward signals rather than hoping they emerge from generic training.
 
-- 01: JSONL has post_text and tier
-- 03: JSONL has post_text and structure in allowed set
-- 17: JSONL has post_text
-- 18: JSONL has prompt
-- 22: CSV has system, prompt, chosen, rejected
-- 23: CSV standardized outputs valid
+This approach is novel because most reward functions are either human preference proxies or generic quality metrics. I instead create programmatic rewards that mirror the exact specification used to build the dataset.
 
-## Tests and CI
+### Example: how a completion is scored
 
-- Run `make test` to execute unit/integration tests.
-- A smoke script `tests/smoke_etl.sh` exercises 01-03.
-- GitHub Actions workflow `.github/workflows/ci.yml` runs tests on push/PR.
+- Constraints: Length 750–1500; Emoji: high; Tone: witty, inspiring; Bullets: •
+- Completion (excerpt):
+  > I bootstrapped my way from zero to traction by doing the unsexy work daily. Here’s the part nobody tells you: momentum compounds when you show up before motivation does.
 
-## Full Emulate Framework
+- Reward scores (illustrative):
+  - precise_post_length_reward: 0.92
+  - emoji_usage_reward: 0.85
+  - tone_alignment_reward: 0.80
+  - bullet_style_reward: 1.00
+  - semantic_coherence_reward: 0.78
+  - weighted_total (weights.example.json): 0.86
 
-## Got a Project?
+### Evaluate rewards quickly
+
+- CPU-only quick check: `make eval-rewards`
+  - Uses training/rewards/weights.example.json and writes a simple report under reports/
+  - Customize: `make eval-rewards EVAL_RUN=mytest` or pass a different `--weights`
+- Tune weights, re-run GRPO, sample generations, and compare aggregate scores over a fixed prompt set.
+
+### Feature ↔ Reward symmetry loop
+
+```mermaid
+flowchart LR
+  A[Raw social posts] --> B[Feature extractors (structure, tone, emoji, length, etc.)]
+  B --> C[Prompts + SFT/DPO datasets]
+  C --> D[SFT training (25)]
+  D --> E[GRPO training (26)]
+  E -->|Inverse rewards mirror features| F[Scored generations]
+  F -->|Validate with same features| B
+```
+
+
+## Optional extras
+
+- Ablation (Stage 4): small research run to see which structure features matter
+- Streamlit demo: quick scoring UI for generated posts
+
 
 ## Licensing
 

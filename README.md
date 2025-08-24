@@ -184,11 +184,11 @@ This approach is novel because most reward functions are either human preference
 
 ```mermaid
 flowchart LR
-  A[Raw social posts] --> B[Feature extractors (structure, tone, emoji, length, etc.)]
-  B --> C[Prompts + SFT/DPO datasets]
-  C --> D[SFT training (25)]
-  D --> E[GRPO training (26)]
-  E -->|Inverse rewards mirror features| F[Scored generations]
+  A["Raw social posts"] --> B["Feature extractors: structure, tone, emoji, length"]
+  B --> C["Prompts + SFT/DPO datasets"]
+  C --> D["SFT training (25)"]
+  D --> E["GRPO training (26)"]
+  E -->|Inverse rewards mirror features| F["Scored generations"]
   F -->|Validate with same features| B
 ```
 

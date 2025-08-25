@@ -12,11 +12,11 @@ if __package__ is None or __package__ == "":
     import sys, pathlib
     sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
 
-from pipe.utils.logging_setup import init_logging, init_pipeline_logging
-from pipe.utils.manifest import read_manifest, write_manifest, compute_hash, should_skip, update_stage, discover_input
-from pipe.utils.validation import validate_csv
-from pipe.utils.contracts import write_contract
-from pipe.utils.reports import write_summary
+from utils.logging_setup import init_logging, init_pipeline_logging
+from utils.manifest import read_manifest, write_manifest, compute_hash, should_skip, update_stage, discover_input
+from utils.validation import validate_csv
+from utils.contracts import write_contract
+from utils.reports import write_summary
 import pandas as pd
 
 # For synonym augmentation (optional; will import lazily)
@@ -215,7 +215,7 @@ def process_csv(
 
     # Resolve input via manifest helper when run_id is provided unless explicit input is passed
     if run_id:
-        from pipe.utils.io import resolve_input_path
+        from utils.io import resolve_input_path
         input_file = resolve_input_path(run_id=run_id, base_dir=base_dir, explicit_input=input_file, prior_stages=["22-dataset"])  # type: ignore
         logger.info(f"Resolved input: {input_file}")
     else:
@@ -251,7 +251,7 @@ def process_csv(
             return
 
     # Seeding for determinism when shuffling/upsampling
-    from pipe.utils.seed import set_global_seed
+    from utils.seed import set_global_seed
     set_global_seed(seed)
     """
     1) Loads all entries from `input_file` (CSV format).
@@ -602,7 +602,7 @@ def process_csv(
 
     if run_id and std_dir:
         # Re-validate standardized CSVs with required columns
-        from pipe.utils.validation import validate_csv
+        from utils.validation import validate_csv
         ok_sft = validate_csv(std_sft_path)
         ok_dpo = validate_csv(std_dpo_path)
 
@@ -697,7 +697,7 @@ if __name__ == "__main__":
     parser.add_argument("--min-entries-per-combo", dest="min_entries_per_combo", type=int, default=1)
     parser.add_argument("--debug", dest="debug", action="store_true", default=True)
     parser.add_argument("--disable-augmentation", dest="disable_augmentation", action="store_true", default=False)
-    from pipe.utils.cli import add_standard_args, resolve_common_args
+    from utils.cli import add_standard_args, resolve_common_args
     add_standard_args(parser, include_seed=True)
     args = parser.parse_args()
 
@@ -708,8 +708,8 @@ if __name__ == "__main__":
     logger.info(f"Processing {args.input_path or '[manifest]'} -> [standardized] under {args.base_dir}/{args.run_id}")
 
     # Use standardized IO only under run-id
-    from pipe.utils.artifacts import ArtifactNames
-    from pipe.utils.io import resolve_io
+    from utils.artifacts import ArtifactNames
+    from utils.io import resolve_io
 
     input_path, _, _ = resolve_io(stage="23-split", run_id=args.run_id, base_dir=args.base_dir, explicit_in=args.input_path, prior_stage="22-dataset", std_name=None)
 

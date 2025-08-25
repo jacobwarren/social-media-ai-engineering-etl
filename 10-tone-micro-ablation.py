@@ -16,11 +16,11 @@ if __package__ is None or __package__ == "":
     import sys, pathlib
     sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
 
-from pipe.utils.logging_setup import init_pipeline_logging
-from pipe.utils.seed import set_global_seed
-from pipe.utils.manifest import read_manifest, discover_input, compute_hash, should_skip, update_stage
-from pipe.utils.run_id import get_last_run_id
-from pipe.utils.version import STAGE_VERSION
+from utils.logging_setup import init_pipeline_logging
+from utils.seed import set_global_seed
+from utils.manifest import read_manifest, discover_input, compute_hash, should_skip, update_stage
+from utils.run_id import get_last_run_id
+from utils.version import STAGE_VERSION
 
 # Configure logging
 logger = init_pipeline_logging("phase2.tone_ablation", None, "10-tone-micro-ablation")

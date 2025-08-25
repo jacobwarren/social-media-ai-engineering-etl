@@ -11,10 +11,10 @@ if __package__ is None or __package__ == "":
     import sys, pathlib
     sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
 
-from pipe.utils.logging_setup import init_pipeline_logging
-from pipe.utils.manifest import read_manifest, compute_hash, should_skip, update_stage, discover_input
-from pipe.utils.seed import set_global_seed
-from pipe.utils.version import STAGE_VERSION
+from utils.logging_setup import init_pipeline_logging
+from utils.manifest import read_manifest, compute_hash, should_skip, update_stage, discover_input
+from utils.seed import set_global_seed
+from utils.version import STAGE_VERSION
 
 
 def load_emoji_bins(bins_path: Optional[str] = None) -> List[Tuple[float, str]]:
@@ -120,8 +120,8 @@ def process_posts(
 
     # Resolve IO centrally
     if run_id:
-        from pipe.utils.io import resolve_io
-        from pipe.utils.artifacts import ArtifactNames
+        from utils.io import resolve_io
+        from utils.artifacts import ArtifactNames
         input_path, std_output_path, run_id = resolve_io(stage="02-label", run_id=run_id, base_dir=base_dir, explicit_in=input_path, prior_stage="01-find-gradient", std_name=ArtifactNames.STAGE02_LABELED)
         signature = compute_hash([input_path], config={
             "stage": 2,
@@ -249,7 +249,7 @@ def main():
 
     # Resolve 'latest' run id ergonomics for stage 2+
     if args.run_id == "latest":
-        from pipe.utils.run_id import get_last_run_id
+        from utils.run_id import get_last_run_id
         latest = get_last_run_id(args.base_dir)
         if not latest:
             raise ValueError("No .last_run_id found; run stage 1 first or provide --run-id")

@@ -5,7 +5,7 @@ from pathlib import Path
 from datetime import datetime
 
 from prefect import flow, task
-from pipe.utils.logging_setup import init_pipeline_logging
+from utils.logging_setup import init_pipeline_logging
 
 
 def run(cmd: list[str], cwd: str | None = None):

@@ -13,10 +13,10 @@ if __package__ is None or __package__ == "":
     import sys, pathlib
     sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
 
-from pipe.utils.logging_setup import init_pipeline_logging
-from pipe.utils.manifest import read_manifest, write_manifest, compute_hash, should_skip, update_stage, discover_input
-from pipe.utils.seed import set_global_seed
-from pipe.utils.version import STAGE_VERSION
+from utils.logging_setup import init_pipeline_logging
+from utils.manifest import read_manifest, write_manifest, compute_hash, should_skip, update_stage, discover_input
+from utils.seed import set_global_seed
+from utils.version import STAGE_VERSION
 
 # Configure logging
 logger = init_pipeline_logging("phase2.structures", None, "03-extract-structures")
@@ -215,8 +215,8 @@ def process_posts(input_path: str | None,
     logger.info("All inference completed. Process finished successfully.")
 
     # Validate standardized JSONL before updating manifest
-    from pipe.schemas import Stage03Record
-    from pipe.utils.validation import validate_jsonl_records
+    from schemas import Stage03Record
+    from utils.validation import validate_jsonl_records
     ok_std = validate_jsonl_records(resolved_output, model_cls=Stage03Record, required_keys=["post_text", "structure"], allowed_values={"structure": set(STRUCTURE_LABELS) | {"unknown"}})
 
     # Update manifest

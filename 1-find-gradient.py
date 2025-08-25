@@ -11,10 +11,10 @@ if __package__ is None or __package__ == "":
     import sys, pathlib
     sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
 
-from pipe.utils.logging_setup import init_pipeline_logging
-from pipe.utils.manifest import read_manifest, compute_hash, should_skip, update_stage
-from pipe.utils.seed import set_global_seed
-from pipe.utils.version import STAGE_VERSION
+from utils.logging_setup import init_pipeline_logging
+from utils.manifest import read_manifest, compute_hash, should_skip, update_stage
+from utils.seed import set_global_seed
+from utils.version import STAGE_VERSION
 
 
 def calculate_ratio(followers: float, comments: float, likes: float, shares: float, clamp: float) -> float:
@@ -39,7 +39,13 @@ def compute_cutoffs(input_path: str, clamp: float, top_pct: float, bottom_pct: f
                 record = json.loads(line)
             except json.JSONDecodeError:
                 continue
-            for post in record.get("posts", []):
+            posts_field = record.get("posts", None)
+            if isinstance(posts_field, list):
+                posts_iter = posts_field
+            else:
+                # Support flat JSONL where each line is a single post object
+                posts_iter = [record] if ("post_text" in record or "follower_count" in record or "total_likes_count" in record) else []
+            for post in posts_iter:
                 followers = post.get("follower_count", 0) or 0
                 comments = post.get("comments_count", 0) or 0
                 likes = post.get("total_likes_count", 0) or 0
@@ -82,7 +88,12 @@ def write_filtered(
                     record = json.loads(line)
                 except json.JSONDecodeError:
                     continue
-                for post in record.get("posts", []):
+                posts_field = record.get("posts", None)
+                if isinstance(posts_field, list):
+                    posts_iter = posts_field
+                else:
+                    posts_iter = [record] if ("post_text" in record or "follower_count" in record or "total_likes_count" in record) else []
+                for post in posts_iter:
                     followers = post.get("follower_count", 0) or 0
                     comments = post.get("comments_count", 0) or 0
                     likes = post.get("total_likes_count", 0) or 0
@@ -178,7 +189,7 @@ def main():
     set_global_seed(args.seed)
 
     # Resolve run_id ergonomics for stage 1
-    from pipe.utils.run_id import generate_run_id, save_last_run_id, write_run_metadata
+    from utils.run_id import generate_run_id, save_last_run_id, write_run_metadata
     if not args.run_id:
         # Auto-generate for stage 1 and save
         args.run_id = generate_run_id()
@@ -191,8 +202,8 @@ def main():
     if args.run_id:
         if not args.input_path:
             raise ValueError("--input is required for the first stage when using --run-id")
-        from pipe.utils.io import resolve_io
-        from pipe.utils.artifacts import ArtifactNames
+        from utils.io import resolve_io
+        from utils.artifacts import ArtifactNames
         _, std_output_path, args.run_id = resolve_io(stage="01-find-gradient", run_id=args.run_id, base_dir=args.base_dir, explicit_in=args.input_path, std_name=ArtifactNames.STAGE01_BEST_POSTS)
         signature = compute_hash([args.input_path], config={
             "stage": 1,
@@ -230,8 +241,8 @@ def main():
     logger.info(f"Wrote {sum(counts.values())} posts to {target_path}")
 
     # Validate standardized output before manifest update
-    from pipe.schemas import Stage01Record
-    from pipe.utils.validation import validate_jsonl_records
+    from schemas import Stage01Record
+    from utils.validation import validate_jsonl_records
     ok_std = True
     if std_output_path:
         ok_std = validate_jsonl_records(std_output_path, model_cls=Stage01Record, required_keys=["post_text", "tier"])  # basic check

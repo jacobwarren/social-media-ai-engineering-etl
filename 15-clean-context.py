@@ -8,10 +8,10 @@ if __package__ is None or __package__ == "":
     import sys, pathlib
     sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
 
-from pipe.utils.logging_setup import init_pipeline_logging
-from pipe.utils.manifest import read_manifest, compute_hash, should_skip, update_stage, discover_input
-from pipe.utils.run_id import get_last_run_id
-from pipe.utils.version import STAGE_VERSION
+from utils.logging_setup import init_pipeline_logging
+from utils.manifest import read_manifest, compute_hash, should_skip, update_stage, discover_input
+from utils.run_id import get_last_run_id
+from utils.version import STAGE_VERSION
 
 logger = init_pipeline_logging("phase2.clean_context", None, "15-clean-context")
 

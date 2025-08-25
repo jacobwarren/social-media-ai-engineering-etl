@@ -10,12 +10,12 @@ if __package__ is None or __package__ == "":
     import sys, pathlib
     sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
 
-from pipe.utils.logging_setup import init_pipeline_logging
-from pipe.utils.manifest import read_manifest, update_stage, should_skip, compute_hash
-from pipe.utils.contracts import write_contract
-from pipe.utils.version import STAGE_VERSION
-from pipe.utils.reports import write_summary
-from pipe.utils.violations import generate_negative
+from utils.logging_setup import init_pipeline_logging
+from utils.manifest import read_manifest, update_stage, should_skip, compute_hash
+from utils.contracts import write_contract
+from utils.version import STAGE_VERSION
+from utils.reports import write_summary
+from utils.violations import generate_negative
 
 logger = init_pipeline_logging("phase2.add_negatives", None, "24-add-negatives")
 
@@ -139,7 +139,7 @@ def main():
     # Resolve latest run-id if requested
     if args.run_id == "latest":
         try:
-            from pipe.utils.run_id import get_last_run_id
+            from utils.run_id import get_last_run_id
             latest = get_last_run_id(args.base_dir)
             if latest:
                 args.run_id = latest
@@ -185,7 +185,7 @@ def main():
         write_contract(output_path, schema_version="v1", counts={"rows": len(df)})
         if pq_path:
             write_contract(pq_path, schema_version="v1", counts={"rows": len(df)})
-        from pipe.utils.reports import write_summary
+        from utils.reports import write_summary
         write_summary(args.run_id or "no-run", "24-add-negatives", {"rows": len(df), "csv": output_path, "parquet": pq_path})
         if args.run_id:
             manifest = read_manifest(args.run_id, args.base_dir)

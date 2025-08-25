@@ -42,10 +42,10 @@ if __package__ is None or __package__ == "":
     import sys, pathlib
     sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
 
-from pipe.utils.logging_setup import init_pipeline_logging
-from pipe.utils.manifest import read_manifest, update_stage, compute_hash, should_skip
-from pipe.utils.cli import add_standard_args, resolve_common_args
-from pipe.utils.io import resolve_input_path
+from utils.logging_setup import init_pipeline_logging
+from utils.manifest import read_manifest, update_stage, compute_hash, should_skip
+from utils.cli import add_standard_args, resolve_common_args
+from utils.io import resolve_input_path
 
 logger = init_pipeline_logging("phase2.style", None, "17-writing-style")
 logger.info(f"Performance configuration: {PERFORMANCE_CONFIG}")
@@ -98,7 +98,7 @@ if PERFORMANCE_CONFIG['use_small_spacy']:
 
 # Build a shared FeatureContext once
 try:
-    from pipe.features.context import FeatureContext as _FeatureContext
+    from features.context import FeatureContext as _FeatureContext
     CTX = _FeatureContext.from_spacy(nlp)
 except Exception:
     CTX = None
@@ -222,10 +222,10 @@ def analyze_line_breaks(text):
     avg_line_breaks = sum(len(line) == 0 for line in lines) / (len(lines) - 1) if len(lines) > 1 else 0
     return line_breaks, avg_line_breaks
 
-from pipe.features.bullets import detect_bullet_styles as _mod_detect_bullets
-from pipe.features.dividers import detect_divider_styles as _mod_detect_dividers
-from pipe.features.profanity import determine_profanity_category as _mod_profanity
-from pipe.features.text_stats import analyze_vocabulary_usage as _mod_vocab, analyze_sentence_structure as _mod_sent_struct, analyze_line_breaks as _mod_line_breaks, punctuation_counts as _mod_punct
+from features.bullets import detect_bullet_styles as _mod_detect_bullets
+from features.dividers import detect_divider_styles as _mod_detect_dividers
+from features.profanity import determine_profanity_category as _mod_profanity
+from features.text_stats import analyze_vocabulary_usage as _mod_vocab, analyze_sentence_structure as _mod_sent_struct, analyze_line_breaks as _mod_line_breaks, punctuation_counts as _mod_punct
 
 def detect_bullet_styles(text):
     lines = text.split('\n')
@@ -722,12 +722,12 @@ def main(input_file: str,
          seed: int | None = None):
 
     # Seed for determinism where applicable
-    from pipe.utils.seed import set_global_seed
+    from utils.seed import set_global_seed
     set_global_seed(seed)
 
     # Prepare standardized outputs via centralized resolver
-    from pipe.utils.io import resolve_io
-    from pipe.utils.artifacts import ArtifactNames
+    from utils.io import resolve_io
+    from utils.artifacts import ArtifactNames
     std_output_path = None
     std_temp_output_path = None
     std_outfile = None
@@ -737,7 +737,7 @@ def main(input_file: str,
         std_temp_output_path = os.path.join(base_dir, run_id, ArtifactNames.STAGE17_PARTIAL)
 
         # If up-to-date, skip work (signature on input + PERF config)
-        from pipe.utils.version import STAGE_VERSION
+        from utils.version import STAGE_VERSION
         signature = compute_hash([input_file], config={"stage": 17, "perf": PERFORMANCE_CONFIG, "stage_version": STAGE_VERSION})
         manifest = read_manifest(run_id, base_dir)
         if should_skip(manifest, "17-writing-style", signature, [std_output_path, std_temp_output_path]):
@@ -909,8 +909,8 @@ def main(input_file: str,
 
     # Validate standardized JSONL before updating manifest
     try:
-        from pipe.schemas import Stage17Record
-        from pipe.utils.validation import validate_jsonl_records
+        from schemas import Stage17Record
+        from utils.validation import validate_jsonl_records
         ok_std = True
         if std_output_path:
             ok_std = validate_jsonl_records(std_output_path, model_cls=Stage17Record, required_keys=["post_text"])  # just basic presence
@@ -927,7 +927,7 @@ def main(input_file: str,
     logger.info(f"Results written to {output_file}")
     if std_output_path and run_id:
         manifest = read_manifest(run_id, base_dir)
-        from pipe.utils.version import STAGE_VERSION
+        from utils.version import STAGE_VERSION
         signature = compute_hash([input_file], config={"stage": 17, "perf": PERFORMANCE_CONFIG, "stage_version": STAGE_VERSION})
         update_stage(
             run_id,

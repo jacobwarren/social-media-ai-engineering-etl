@@ -9,12 +9,12 @@ if __package__ is None or __package__ == "":
     import sys, pathlib
     sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
 
-from pipe.utils.logging_setup import init_pipeline_logging
-from pipe.utils.manifest import read_manifest, write_manifest, compute_hash, should_skip, update_stage, discover_input
-from pipe.utils.validation import validate_csv
-from pipe.utils.contracts import write_contract
-from pipe.utils.reports import write_summary
-from pipe.utils.cli import add_standard_args, resolve_common_args
+from utils.logging_setup import init_pipeline_logging
+from utils.manifest import read_manifest, write_manifest, compute_hash, should_skip, update_stage, discover_input
+from utils.validation import validate_csv
+from utils.contracts import write_contract
+from utils.reports import write_summary
+from utils.cli import add_standard_args, resolve_common_args
 import pandas as pd
 
 def create_topic_prompt(post_text, post):
@@ -100,8 +100,8 @@ def load_and_process_data(input_file, output_file='dpo.csv', run_id=None, base_d
     logger = init_pipeline_logging("phase2.dataset", run_id, "22-generate-dataset")
 
     # Resolve IO centrally
-    from pipe.utils.io import resolve_io
-    from pipe.utils.artifacts import ArtifactNames
+    from utils.io import resolve_io
+    from utils.artifacts import ArtifactNames
     input_file, std_output_path, run_id = resolve_io(stage="22-dataset", run_id=run_id, base_dir=base_dir, explicit_in=input_file, prior_stage="18-prompts", std_name=ArtifactNames.STAGE22_DATASET)
     std_parquet_path = os.path.join(base_dir, run_id, ArtifactNames.STAGE22_DATASET.replace('.csv', '.parquet'))
     logger.info(f"Resolved input: {input_file}; std_out: {std_output_path}")

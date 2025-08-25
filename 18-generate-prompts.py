@@ -9,11 +9,11 @@ if __package__ is None or __package__ == "":
     import sys, pathlib
     sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
 
-from pipe.utils.logging_setup import init_pipeline_logging
-from pipe.utils.manifest import read_manifest, write_manifest, compute_hash, should_skip, update_stage, discover_input
-from pipe.schemas import PromptRecord, validate_record
-from pipe.utils.seed import set_global_seed
-from pipe.utils.cli import add_standard_args, resolve_common_args
+from utils.logging_setup import init_pipeline_logging
+from utils.manifest import read_manifest, write_manifest, compute_hash, should_skip, update_stage, discover_input
+from schemas import PromptRecord, validate_record
+from utils.seed import set_global_seed
+from utils.cli import add_standard_args, resolve_common_args
 
 #######################################################
 #          1. Utility Descriptions (Updated)          #
@@ -386,8 +386,8 @@ def process_posts(input_path,
     logger = init_pipeline_logging("phase2.prompts", run_id, "18-generate-prompts")
 
     # Resolve IO centrally (enforce standardization)
-    from pipe.utils.io import resolve_io
-    from pipe.utils.artifacts import ArtifactNames
+    from utils.io import resolve_io
+    from utils.artifacts import ArtifactNames
     input_path, std_output_path, run_id = resolve_io(stage="18-prompts", run_id=run_id, base_dir=base_dir, explicit_in=input_path, prior_stage="17-writing-style", std_name=ArtifactNames.STAGE18_PROMPTS)
     logger.info(f"Resolved input: {input_path}; std_out: {std_output_path}")
 
@@ -471,8 +471,8 @@ def process_posts(input_path,
                 logger.error(f"Error processing line: {str(e)}")
     # Validate standardized JSONL before updating manifest
     try:
-        from pipe.schemas import Stage18Record
-        from pipe.utils.validation import validate_jsonl_records
+        from schemas import Stage18Record
+        from utils.validation import validate_jsonl_records
         ok_std = True
         if std_output_path:
             ok_std = validate_jsonl_records(std_output_path, model_cls=Stage18Record, required_keys=["prompt"])  # ensure 'prompt' exists

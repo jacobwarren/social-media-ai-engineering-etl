@@ -146,28 +146,28 @@ def main():
         except Exception:
             pass
 
+    # Use common IO helpers for discovery and standardization
+    from utils.io import resolve_io
+    from utils.artifacts import ArtifactNames
+
+    # Prefer manifest discovery of 23-split outputs; choose DPO CSV among them
     input_path = args.input_path
     output_path = args.output_path
-
-    # If run_id provided, auto-discover input from manifest 23-split standardized DPO CSV
     if args.run_id and args.base_dir:
-        manifest = read_manifest(args.run_id, args.base_dir)
-        try:
-            stage_meta = manifest["stages"]["23-split"]
-            out = stage_meta.get("output") or stage_meta.get("outputs") or []
-            if isinstance(out, list):
-                dpo_csvs = [p for p in out if p.endswith("23-dpo.csv")]
-                input_path = dpo_csvs[0] if dpo_csvs else (out[0] if out else input_path)
-            elif isinstance(out, str):
-                input_path = out
-        except Exception:
-            pass
+        # Discover any output of 23-split
+        discovered, _, _ = resolve_io(stage="24-add-negatives", run_id=args.run_id, base_dir=args.base_dir, explicit_in=input_path, prior_stage="23-split", std_name=None)
+        # If multiple, prefer the file ending with 23-dpo.csv
+        if isinstance(discovered, list):
+            candidates = [p for p in discovered if p.endswith("23-dpo.csv")] or discovered
+            input_path = candidates[0]
+        else:
+            input_path = discovered
         std_dir = os.path.join(args.base_dir, args.run_id)
         os.makedirs(std_dir, exist_ok=True)
         output_path = os.path.join(std_dir, "24-dpo-ready.csv")
         pq_expected = os.path.join(std_dir, "24-dpo-ready.parquet")
         signature = compute_hash([input_path], config={"stage": 24, "stage_version": STAGE_VERSION})
-        if should_skip(manifest, "24-add-negatives", signature, [output_path, pq_expected]):
+        if should_skip(read_manifest(args.run_id, args.base_dir), "24-add-negatives", signature, [output_path, pq_expected]):
             logger.info(f"Skipping 24-add-negatives; up-to-date at {output_path}")
             return
 

@@ -96,12 +96,13 @@ def resolve_io(
     run_id: Optional[str],
     base_dir: str,
     explicit_in: Optional[str] = None,
-    prior_stage: Optional[str] = None,
+    prior_stage: Optional[Iterable[str] | str] = None,
     std_name: Optional[str] = None,
 ):
     """Resolve input and standardized output for a stage.
 
     - If run_id is provided, prefer discovering input from manifest using prior_stage.
+      prior_stage may be a single stage name or an iterable of stage names to try in order.
     - Ensure standardized output directory exists under base_dir/run_id and return std path.
     - If run_id is None, require explicit_in and return (explicit_in, None, None).
     """
@@ -109,10 +110,18 @@ def resolve_io(
     if rid:
         manifest = read_manifest(rid, base_dir)
         inp = explicit_in
+        # Support multiple prior stages to try in order
         if prior_stage:
-            discovered = discover_input(manifest, prior_stage)
-            if discovered and os.path.exists(discovered):
-                inp = discovered
+            stages_to_try: List[str] = []
+            if isinstance(prior_stage, (list, tuple, set)):
+                stages_to_try = list(prior_stage)
+            else:
+                stages_to_try = [prior_stage]  # type: ignore[list-item]
+            for stage_name in stages_to_try:
+                discovered = discover_input(manifest, stage_name)
+                if discovered and os.path.exists(discovered):
+                    inp = discovered
+                    break
         if not inp:
             raise IOResolutionError("No input found: provide --input or ensure prior stage outputs exist")
         out_dir = Path(base_dir) / rid

@@ -34,17 +34,16 @@ if args.run_id == "latest":
     if latest:
         args.run_id = latest
 
-# Discover dataset CSV via manifest when run-id is provided
+# Discover dataset CSV via manifest when run-id is provided (use common IO helper)
 csv_path = args.csv
 if args.run_id:
     try:
-        m = read_manifest(args.run_id, args.base_dir)
-        discovered = discover_input(m, "23-split")
-        # Prefer SFT CSV if multiple
+        from utils.io import resolve_io
+        discovered, _, _ = resolve_io(stage="25-train-sft", run_id=args.run_id, base_dir=args.base_dir, explicit_in=csv_path, prior_stage="23-split", std_name=None)
         if isinstance(discovered, list):
             preferred = [p for p in discovered if p.endswith("23-sft.csv")] or discovered
             csv_path = preferred[0]
-        elif isinstance(discovered, str):
+        else:
             csv_path = discovered
         logger.info(f"Using training CSV: {csv_path}")
     except Exception:

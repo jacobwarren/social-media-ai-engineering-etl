@@ -63,11 +63,14 @@ run-e2e: run-core run-features
 	$(PYTHON) "$(MAKEFILE_DIR)18-generate-prompts.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR_PATH)"
 	$(PYTHON) "$(MAKEFILE_DIR)22-generate-dataset.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR_PATH)"
 	$(PYTHON) "$(MAKEFILE_DIR)23-split.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR_PATH)" --disable-augmentation
+	$(PYTHON) "$(MAKEFILE_DIR)25-train-sft.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR_PATH)"
+	$(PYTHON) "$(MAKEFILE_DIR)26-train-grpo.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR_PATH)"
+	$(PYTHON) "$(MAKEFILE_DIR)27-experiment.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR_PATH)"
 
 # Strict end-to-end: run all numbered stages in sequence, including 4 and 5
 .PHONY: run-e2e-strict
 run-e2e-strict:
-	@echo "[STRICT] Running 01 → 23 sequentially (includes 04-ablation and 05-balance)"
+	@echo "[STRICT] Running 01 → 27 sequentially (includes 04-ablation and 05-balance)"
 	$(PYTHON) "$(MAKEFILE_DIR)1-find-gradient.py" --input "$(DATASET_PATH)" --run-id $(RUN_ID) --base-dir "$(BASE_DIR_PATH)" --report
 	$(PYTHON) "$(MAKEFILE_DIR)2-label.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR_PATH)"
 	$(PYTHON) "$(MAKEFILE_DIR)3-extract-structures.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR_PATH)"
@@ -88,6 +91,10 @@ run-e2e-strict:
 	$(PYTHON) "$(MAKEFILE_DIR)18-generate-prompts.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR_PATH)"
 	$(PYTHON) "$(MAKEFILE_DIR)22-generate-dataset.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR_PATH)"
 	$(PYTHON) "$(MAKEFILE_DIR)23-split.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR_PATH)" --disable-augmentation
+	# Training and experiments
+	$(PYTHON) "$(MAKEFILE_DIR)25-train-sft.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR_PATH)"
+	$(PYTHON) "$(MAKEFILE_DIR)26-train-grpo.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR_PATH)"
+	$(PYTHON) "$(MAKEFILE_DIR)27-experiment.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR_PATH)"
 
 
 lint:

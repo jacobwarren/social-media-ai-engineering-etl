@@ -2337,13 +2337,28 @@ def main():
         csv_path = "dpo.csv"
         try:
             if args.run_id:
-                m = read_manifest(args.run_id, args.base_dir)
-                discovered = discover_input(m, "24-add-negatives") or discover_input(m, "23-split")
-                if isinstance(discovered, list):
-                    preferred = [p for p in discovered if p.endswith("24-dpo-ready.csv")] or [p for p in discovered if p.endswith("23-dpo.csv")] or discovered
+                manifest = read_manifest(args.run_id, args.base_dir)
+                out_paths = []
+                try:
+                    stage_meta = manifest.get("stages", {}).get("24-add-negatives")
+                    if stage_meta:
+                        outs = stage_meta.get("outputs") or stage_meta.get("output") or []
+                        out_paths.extend(outs if isinstance(outs, list) else [outs])
+                except Exception:
+                    pass
+                if not out_paths:
+                    try:
+                        stage_meta = manifest.get("stages", {}).get("23-split")
+                        if stage_meta:
+                            outs = stage_meta.get("outputs") or stage_meta.get("output") or []
+                            out_paths.extend(outs if isinstance(outs, list) else [outs])
+                    except Exception:
+                        pass
+                # Prefer 24-dpo-ready.csv, else 23-dpo.csv, else first discovered
+                candidates = [p for p in out_paths if isinstance(p, str)]
+                preferred = [p for p in candidates if p.endswith("24-dpo-ready.csv")] or [p for p in candidates if p.endswith("23-dpo.csv")] or candidates
+                if preferred:
                     csv_path = preferred[0]
-                elif isinstance(discovered, str):
-                    csv_path = discovered
                 logger.info(f"Using DPO CSV: {csv_path}")
         except Exception:
             pass

@@ -408,7 +408,7 @@ def run_ablation_test(run_id: str | None,
 
     logger.info("Loading embedding model...")
     try:
-        embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+        embedding_model = SentenceTransformer('Qwen/Qwen3-Embedding-0.6B')
     except Exception as e:
         logger.error(f"Error loading embedding model: {e}")
         return

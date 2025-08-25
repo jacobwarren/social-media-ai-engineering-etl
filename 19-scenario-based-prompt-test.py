@@ -317,7 +317,7 @@ def run_tests():
     llm = LLM(model=MODEL_NAME, max_model_len=8192)
 
     logger.info("Loading embedding model...")
-    embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+    embedding_model = SentenceTransformer('Qwen/Qwen3-Embedding-0.6B')
 
     # Define which features to test for each post
     features_to_test = list(FEATURES_TO_TEST.keys())[:3]  # Start with top 3 features
@@ -630,7 +630,7 @@ def main():
     logger.info(f"Loading LLM: {args.model_name}")
     llm = LLM(model=args.model_name, max_model_len=8192)
     logger.info("Loading embedding model…")
-    embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+    embedding_model = SentenceTransformer('Qwen/Qwen3-Embedding-0.6B')
 
     # Select features to test
     features_to_test = list(FEATURES_TO_TEST.keys())[:3]

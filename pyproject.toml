@@ -23,6 +23,10 @@ dependencies = [
   "nltk>=3.9,<4",
   "emojis>=0.7,<1",
   "vllm>=0.10.1.1",
+  "matplotlib>=3.10.5",
+  "seaborn>=0.13.2",
+  "sentence_transformers>=5.1.0",
+  "nlpaug>=1.1.11",
   "pyarrow>=19,<22"           # Arrow 19+ is current & stable
 ]
 

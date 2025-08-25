@@ -1,8 +1,8 @@
 import os
 import json
-from pipe.utils.run_id import save_last_run_id, get_last_run_id
-from pipe.utils.io import resolve_run_id
-from pipe.utils.manifest import read_manifest, update_stage, discover_input
+from utils.run_id import save_last_run_id, get_last_run_id
+from utils.io import resolve_run_id
+from utils.manifest import read_manifest, update_stage, discover_input
 
 
 def test_latest_resolution(tmp_path):

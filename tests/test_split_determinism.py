@@ -17,7 +17,7 @@ def _read(path):
 
 
 def test_split_determinism(tmp_path):
-    m = importlib.import_module("pipe.23-split")
+    m = importlib.import_module("23-split")
     rows = [
         {"system": "", "prompt": "Create a LinkedIn post that shares a step-by-step guide", "chosen": "A", "rejected": "B"},
         {"system": "", "prompt": "Create a LinkedIn post that reflects on an experience", "chosen": "C", "rejected": "D"},

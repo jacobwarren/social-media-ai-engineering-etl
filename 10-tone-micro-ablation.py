@@ -30,7 +30,7 @@ RUN_ID = None
 BASE_DIR = "data/processed"
 INPUT_FILE = None  # resolved from manifest when run-id provided
 SAMPLE_PERCENTAGE = 0.20  # Test 20% of the dataset
-MODEL_NAME = "RekaAI/reka-flash-3"
+MODEL_NAME = "Qwen/Qwen3-32B"
 MIN_SAMPLE_SIZE = 5
 MAX_SAMPLE_SIZE = 20
 
@@ -56,7 +56,7 @@ def create_prompt(post, include_tone=True):
         tone = "professional, engaging"
         
     # Build the prompt with all features identical except for tone
-    prompt = f"""{first_line}
+    content = f"""{first_line}
 
 ### Key Message
 
@@ -68,8 +68,8 @@ def create_prompt(post, include_tone=True):
 - **Tone**: {tone}
 - **Structure**: {structure}
 """
-    
-    return prompt
+    # Wrap in chat template for Qwen-style chat models
+    return f"<|im_start|>user\n{content}<|im_end|>\n<|im_start|>assistant\n"
 
 def generate_posts(llm, posts, include_tone=True, llm_batch=8, temperature=0.7, max_tokens=1000, top_p=0.9):
     """

@@ -1,7 +1,7 @@
 import os
 import json
 import tempfile
-from pipe.utils.manifest import compute_hash, should_skip, read_manifest, update_stage
+from utils.manifest import compute_hash, should_skip, read_manifest, update_stage
 
 
 def test_should_not_skip_when_stage_version_changes(tmp_path):

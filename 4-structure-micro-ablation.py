@@ -29,7 +29,7 @@ INPUT_FILE = None  # resolved from manifest when --run-id provided
 BASE_DIR = "data/processed"
 RUN_ID = None
 SAMPLE_PERCENTAGE = 0.20  # Test 20% of the dataset
-MODEL_NAME = "RekaAI/reka-flash-3"
+MODEL_NAME = "Qwen/Qwen3-32B"
 MIN_SAMPLE_SIZE = 5
 MAX_SAMPLE_SIZE = 20
 
@@ -46,7 +46,7 @@ def create_prompt(post, include_structure=True):
         if len(first_sentence) < 100:  # Reasonable topic length
             topic = first_sentence
     
-    base_prompt = f"""Create a LinkedIn post on the topic of: `{topic}`
+    base_content = f"""Create a LinkedIn post on the topic of: `{topic}`
 
 ### Key Message
 ```
@@ -57,7 +57,7 @@ def create_prompt(post, include_structure=True):
 - **Emoji Usage**: {post.get('emoji_usage', 'medium')}
 - **Tone**: {post.get('tone', 'professional, engaging')}
 """
-    
+
     # Add structure if requested
     if include_structure and 'structure' in post:
         structure = post['structure']
@@ -85,9 +85,10 @@ def create_prompt(post, include_structure=True):
         # Update first line with structure if we have a style note
         if style_note:
             first_line = f"Create a LinkedIn post {style_note} on the topic of: `{topic}`"
-            base_prompt = base_prompt.replace(base_prompt.split('\n')[0], first_line)
-    
-    return base_prompt
+            base_content = base_content.replace(base_content.split('\n')[0], first_line)
+
+    # Wrap in chat template for Qwen-style chat models
+    return f"<|im_start|>user\n{base_content}<|im_end|>\n<|im_start|>assistant\n"
 
 def generate_posts(llm, posts, include_structure=True, llm_batch=8, temperature=0.7, max_tokens=1000, top_p=0.9):
     """
@@ -313,7 +314,7 @@ def visualize_results(results_df, similarities):
 def resolve_input_path() -> str:
     global INPUT_FILE, RUN_ID, BASE_DIR
     if RUN_ID:
-        from pipe.utils.run_id import get_last_run_id
+        from utils.run_id import get_last_run_id
         if RUN_ID == "latest":
             rid = get_last_run_id(BASE_DIR)
             if not rid:

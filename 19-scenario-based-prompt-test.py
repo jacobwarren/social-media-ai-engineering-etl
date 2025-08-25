@@ -31,7 +31,7 @@ RUN_ID = None
 BASE_DIR = "data/processed"
 INPUT_FILE = None  # resolved from manifest when run-id provided
 SAMPLE_PERCENTAGE = 0.20
-MODEL_NAME = "RekaAI/reka-flash-3"
+MODEL_NAME = "Qwen/Qwen3-32B"
 MIN_SAMPLE_SIZE = 5
 MAX_SAMPLE_SIZE = 20
 

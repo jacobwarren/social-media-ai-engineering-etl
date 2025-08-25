@@ -16,11 +16,11 @@ if __package__ is None or __package__ == "":
     import sys, pathlib
     sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
 
-from pipe.utils.logging_setup import init_pipeline_logging
-from pipe.utils.seed import set_global_seed
-from pipe.utils.manifest import read_manifest, discover_input, compute_hash, should_skip, update_stage
-from pipe.utils.run_id import get_last_run_id
-from pipe.utils.version import STAGE_VERSION
+from utils.logging_setup import init_pipeline_logging
+from utils.seed import set_global_seed
+from utils.manifest import read_manifest, discover_input, compute_hash, should_skip, update_stage
+from utils.run_id import get_last_run_id
+from utils.version import STAGE_VERSION
 
 # Configure logging
 logger = init_pipeline_logging("phase2.topic_ablation", None, "08-topic-micro-ablation")
@@ -30,7 +30,7 @@ RUN_ID = None
 BASE_DIR = "data/processed"
 INPUT_FILE = None  # resolved from manifest when run-id provided
 SAMPLE_PERCENTAGE = 0.20  # Test 20% of the dataset
-MODEL_NAME = "RekaAI/reka-flash-3"
+MODEL_NAME = "Qwen/Qwen3-32B"
 MIN_SAMPLE_SIZE = 5
 MAX_SAMPLE_SIZE = 20
 
@@ -54,7 +54,7 @@ def create_prompt(post, include_topic=True):
         first_line = f"Create a LinkedIn post"
         
     # Build the prompt with all features identical except for topic
-    prompt = f"""{first_line}
+    content = f"""{first_line}
 
 ### Key Message
 
@@ -65,8 +65,9 @@ def create_prompt(post, include_topic=True):
 - **Tone**: {tone}
 - **Structure**: {structure}
 """
-    
-    return prompt
+
+    # Wrap in chat template for Qwen-style chat models
+    return f"<|im_start|>user\n{content}<|im_end|>\n<|im_start|>assistant\n"
 
 def generate_posts(llm, posts, include_topic=True, llm_batch=8, temperature=0.7, max_tokens=1000, top_p=0.9):
     """

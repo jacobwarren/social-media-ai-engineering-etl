@@ -164,7 +164,7 @@ if __name__ == "__main__":
 
     # Resolve 'latest'
     if args.run_id == "latest":
-        from pipe.utils.run_id import get_last_run_id
+        from utils.run_id import get_last_run_id
         latest = get_last_run_id(args.base_dir)
         if not latest:
             raise ValueError("No .last_run_id found; run stage 1 first or provide --run-id")

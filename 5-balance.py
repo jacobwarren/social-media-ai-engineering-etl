@@ -30,10 +30,17 @@ synonym_aug = naw.SynonymAug(aug_src='wordnet')
 def replace_synonyms_nlpaug(text):
     """
     Use the nlpaug SynonymAug to replace synonyms in text.
+    Normalize output to a string (some nlpaug versions return a list even when n=1).
     """
     if not text:
         return text
-    return synonym_aug.augment(text)
+    try:
+        out = synonym_aug.augment(text)
+    except Exception:
+        return text
+    if isinstance(out, list):
+        return out[0] if out else text
+    return out
 
 ##############################################################################
 # 2. Helper to bucket posts by combo
@@ -245,6 +252,16 @@ if __name__ == "__main__":
 
     nltk.download('wordnet', quiet=True)
     nltk.download('omw-1.4', quiet=True)
+
+    # NLTK POS tagger (newer NLTK uses *_eng); try both
+    try:
+        nltk.download('averaged_perceptron_tagger_eng', quiet=True)
+    except Exception:
+        pass
+    try:
+        nltk.download('averaged_perceptron_tagger', quiet=True)
+    except Exception:
+        pass
 
     stats = two_pass_balance_dataset(
         input_file=args.input_file,

@@ -128,7 +128,7 @@ def process_posts(input_path: str | None,
 
     # Initialize vLLM
     llm = LLM(model=model, max_model_len=max_model_len)
-    guided = GuidedDecodingParams(json=structured_schema, backend="outlines")
+    guided = GuidedDecodingParams(json=structured_schema)
     sampling = SamplingParams(n=1, temperature=temperature, max_tokens=125, guided_decoding=guided)
 
     total = 0

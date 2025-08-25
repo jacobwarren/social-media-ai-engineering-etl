@@ -113,7 +113,6 @@ tone_schema = {
     },
     "minItems": 1,
     "maxItems": 3,
-    "uniqueItems": True  # Avoid duplicates in the final array
 }
 
 def _build_prompt(text: str) -> str:
@@ -149,8 +148,21 @@ def process_batch(batch: List[Dict], llm: LLM, sampling_params: SamplingParams) 
         post = batch[idx_map[map_idx]]
         text = (output.outputs[0].text.strip() if output and output.outputs else "")
         try:
-            tone_list = json.loads(text)
-            tone = ", ".join(tone_list) if isinstance(tone_list, list) else "Unknown"
+            data = json.loads(text)
+            if isinstance(data, list):
+                seen = set()
+                tones = []
+                for item in data:
+                    if isinstance(item, str):
+                        norm = item.strip().lower()
+                        if norm in available_tones and norm not in seen:
+                            tones.append(norm)
+                            seen.add(norm)
+                            if len(tones) == 3:
+                                break
+                tone = ", ".join(tones) if tones else "Unknown"
+            else:
+                tone = "Unknown"
         except Exception:
             tone = text or "Unknown"
         post['tone'] = tone

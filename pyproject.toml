@@ -27,6 +27,7 @@ dependencies = [
   "seaborn>=0.13.2",
   "sentence_transformers>=5.1.0",
   "nlpaug>=1.1.11",
+  "unsloth",
   "pyarrow>=19,<22"           # Arrow 19+ is current & stable
 ]
 

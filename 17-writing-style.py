@@ -734,7 +734,7 @@ def main(input_file: str,
     std_temp_outfile = None
     if run_id:
         # Accept outputs from 15-clean-context, 12-clean-opinions, or 11-extract-opinion in that order
-        _, std_output_path, run_id = resolve_io(stage="17-writing-style", run_id=run_id, base_dir=base_dir, explicit_in=input_file, prior_stage=["15-clean-context", "12-clean-opinions", "11-extract-opinion"], std_name=ArtifactNames.STAGE17_STYLE)
+        input_file, std_output_path, run_id = resolve_io(stage="17-writing-style", run_id=run_id, base_dir=base_dir, explicit_in=input_file, prior_stage=["15-clean-context", "12-clean-opinions", "11-extract-opinion"], std_name=ArtifactNames.STAGE17_STYLE)
         std_temp_output_path = os.path.join(base_dir, run_id, ArtifactNames.STAGE17_PARTIAL)
 
         # If up-to-date, skip work (signature on input + PERF config)

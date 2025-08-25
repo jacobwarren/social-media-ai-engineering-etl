@@ -159,7 +159,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch-size", dest="batch_size", type=int, default=256)
     parser.add_argument("--model", dest="model", default="Qwen/Qwen3-32B")
     parser.add_argument("--max-model-len", dest="max_model_len", type=int, default=8192)
-    parser.add_argument("--temperature", dest="temperature", type=float, default=0.0)
+    parser.add_argument("--temperature", dest="temperature", type=float, default=0.1)
     args = parser.parse_args()
 
     # Resolve 'latest'

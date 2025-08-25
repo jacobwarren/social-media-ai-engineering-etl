@@ -16,11 +16,12 @@ This is the exact pipeline I used to build the LinkedIn model for the SaaS I shu
 ## Quickstart
 
 ```bash
-cd pipe
-make setup           # install package + dev tools
-make setup-nlp       # one-time: download spaCy model + NLTK data
-make smoke           # smoke test for 1 -> 2 -> 3 using run-id ergonomics
-make run-tail RUN_ID=demo  # tail-only: 17-18, 22-23 (assumes features already exist for RUN_ID)
+git clone https://github.com/jacobwarren/social-media-ai-engineering-etl.git
+cd social-media-ai-engineering-etl
+make setup                                              # install package + dev tools
+make setup-nlp                                          # one-time: download spaCy model + NLTK data
+make smoke                                              # smoke test for 1 -> 2 -> 3 using run-id ergonomics
+make run-e2e RUN_ID=demo DATASET=example-dataset.jsonl  # tail-only: 17-18, 22-23 (assumes features already exist for RUN_ID)
 ```
 
 Inputs: use the tiny demo dataset `./example-dataset.jsonl`.
@@ -134,11 +135,11 @@ See the full philosophy at [Emulate Framework](https://emulateframework.ai).
 ## Usage (selected commands)
 
 - End-to-end (all features to final splits):
-  - `make run-e2e RUN_ID=demo DATASET=../course-dataset-clean.jsonl`
+  - `make run-e2e RUN_ID=demo DATASET=example-dataset.jsonl`
 - Tail-only (assumes features exist for RUN_ID):
   - `make run-tail RUN_ID=demo`  (note: 17-writing-style expects an explicit --input when using --run-id; see Makefile or pass --input)
 - Core ingestion + structure only:
-  - `make run-core RUN_ID=demo DATASET=../course-dataset-clean.jsonl`
+  - `make run-core RUN_ID=demo DATASET=example-dataset.jsonl`
 - Feature extraction only (with cleaners):
   - `make run-features RUN_ID=demo`
 

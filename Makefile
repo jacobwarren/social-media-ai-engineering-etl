@@ -1,7 +1,10 @@
-PYTHON=python
+PYTHON?=python
 RUN_ID?=$(shell date +%Y%m%d_%H%M%S)
-BASE_DIR?=data/processed
-DATASET?=../course-dataset-clean.jsonl
+# Directory where this Makefile lives (absolute, trailing slash)
+MAKEFILE_DIR:=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+# Default dirs/files relative to Makefile location so commands work from any CWD
+BASE_DIR?=$(MAKEFILE_DIR)data/processed
+DATASET?=$(MAKEFILE_DIR)example-dataset.jsonl
 
 
 .PHONY: setup setup-nlp run-tail run-core run-features run-e2e run-ablation lint fmt test smoke
@@ -14,27 +17,27 @@ setup-nlp:
 
 # Tail-only: assumes earlier feature stages exist for $(RUN_ID)
 run-tail:
-	$(PYTHON) 17-writing-style.py --run-id $(RUN_ID) --base-dir $(BASE_DIR) --input $(BASE_DIR)/$(RUN_ID)/15-clean-context.jsonl
-	$(PYTHON) 18-generate-prompts.py --run-id $(RUN_ID) --base-dir $(BASE_DIR)
-	$(PYTHON) 22-generate-dataset.py --run-id $(RUN_ID) --base-dir $(BASE_DIR)
-	$(PYTHON) 23-split.py --run-id $(RUN_ID) --base-dir $(BASE_DIR)
+	$(PYTHON) "$(MAKEFILE_DIR)17-writing-style.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR)" --input "$(BASE_DIR)/$(RUN_ID)/15-clean-context.jsonl"
+	$(PYTHON) "$(MAKEFILE_DIR)18-generate-prompts.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR)"
+	$(PYTHON) "$(MAKEFILE_DIR)22-generate-dataset.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR)"
+	$(PYTHON) "$(MAKEFILE_DIR)23-split.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR)"
 
 # Core ingestion + structure
 run-core:
-	$(PYTHON) 1-find-gradient.py --input $(DATASET) --run-id $(RUN_ID) --base-dir $(BASE_DIR) --report
-	$(PYTHON) 2-label.py --run-id $(RUN_ID) --base-dir $(BASE_DIR)
-	$(PYTHON) 3-extract-structures.py --run-id $(RUN_ID) --base-dir $(BASE_DIR)
+	$(PYTHON) "$(MAKEFILE_DIR)1-find-gradient.py" --input "$(DATASET)" --run-id $(RUN_ID) --base-dir "$(BASE_DIR)" --report
+	$(PYTHON) "$(MAKEFILE_DIR)2-label.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR)"
+	$(PYTHON) "$(MAKEFILE_DIR)3-extract-structures.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR)"
 
 # Feature stages needed by 18 (with cleaners for quality)
 run-features:
-	$(PYTHON) 6-extract-topics.py --run-id $(RUN_ID) --base-dir $(BASE_DIR)
-	$(PYTHON) 7-clean-topics.py --run-id $(RUN_ID) --base-dir $(BASE_DIR)
-	$(PYTHON) 9-extract-tone.py --run-id $(RUN_ID) --base-dir $(BASE_DIR)
-	$(PYTHON) 11-extract-opinion.py --run-id $(RUN_ID) --base-dir $(BASE_DIR)
-	$(PYTHON) 12-clean-opinions.py --run-id $(RUN_ID) --base-dir $(BASE_DIR)
-	$(PYTHON) 14-extract-context.py --run-id $(RUN_ID) --base-dir $(BASE_DIR)
-	$(PYTHON) 15-clean-context.py --run-id $(RUN_ID) --base-dir $(BASE_DIR)
-	$(PYTHON) 17-writing-style.py --run-id $(RUN_ID) --base-dir $(BASE_DIR)
+	$(PYTHON) "$(MAKEFILE_DIR)6-extract-topics.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR)"
+	$(PYTHON) "$(MAKEFILE_DIR)7-clean-topics.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR)"
+	$(PYTHON) "$(MAKEFILE_DIR)9-extract-tone.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR)"
+	$(PYTHON) "$(MAKEFILE_DIR)11-extract-opinion.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR)"
+	$(PYTHON) "$(MAKEFILE_DIR)12-clean-opinions.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR)"
+	$(PYTHON) "$(MAKEFILE_DIR)14-extract-context.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR)"
+	$(PYTHON) "$(MAKEFILE_DIR)15-clean-context.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR)"
+	$(PYTHON) "$(MAKEFILE_DIR)17-writing-style.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR)"
 
 # Optional: run ablation (research)
 run-ablation:
@@ -42,50 +45,50 @@ run-ablation:
 
 # End-to-end from raw JSONL to splits
 run-e2e: run-core run-features
-	$(PYTHON) 18-generate-prompts.py --run-id $(RUN_ID) --base-dir $(BASE_DIR)
-	$(PYTHON) 22-generate-dataset.py --run-id $(RUN_ID) --base-dir $(BASE_DIR)
-	$(PYTHON) 23-split.py --run-id $(RUN_ID) --base-dir $(BASE_DIR) --disable-augmentation
+	$(PYTHON) "$(MAKEFILE_DIR)18-generate-prompts.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR)"
+	$(PYTHON) "$(MAKEFILE_DIR)22-generate-dataset.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR)"
+	$(PYTHON) "$(MAKEFILE_DIR)23-split.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR)" --disable-augmentation
 
 lint:
-	ruff check .
+	ruff check "$(MAKEFILE_DIR)"
 
 fmt:
-	black . && isort .
+	black "$(MAKEFILE_DIR)" && isort "$(MAKEFILE_DIR)"
 
 test:
-	pytest -q
+	pytest -q "$(MAKEFILE_DIR)"
 
 smoke:
-	bash tests/smoke_etl.sh
+	bash "$(MAKEFILE_DIR)tests/smoke_etl.sh"
 
 # Evaluate modular rewards (CPU only)
 EVAL_RUN?=$(shell date +%Y%m%d_%H%M%S)
 .PHONY: eval-rewards
 
 eval-rewards:
-	$(PYTHON) scripts/evaluate_rewards.py --run-id $(EVAL_RUN) --base-dir reports --weights training/rewards/weights.example.json
+	$(PYTHON) "$(MAKEFILE_DIR)scripts/evaluate_rewards.py" --run-id $(EVAL_RUN) --base-dir "$(MAKEFILE_DIR)reports" --weights "$(MAKEFILE_DIR)training/rewards/weights.example.json"
 # Prefect orchestration
 .PHONY: flow
 flow:
-	$(PYTHON) orchestration/prefect_flow.py --run-id $${RUN_ID:-demo} --base-dir data/processed --reports-dir reports --tmp-dir tmp --weights training/rewards/weights.example.json
+	$(PYTHON) "$(MAKEFILE_DIR)orchestration/prefect_flow.py" --run-id $${RUN_ID:-demo} --base-dir "$(BASE_DIR)" --reports-dir "$(MAKEFILE_DIR)reports" --tmp-dir "$(MAKEFILE_DIR)tmp" --weights "$(MAKEFILE_DIR)training/rewards/weights.example.json"
 
 # Streamlit demo
 .PHONY: demo
 
 demo:
-	streamlit run app/score_app.py -- --weights training/rewards/weights.example.json
+	streamlit run "$(MAKEFILE_DIR)app/score_app.py" -- --weights "$(MAKEFILE_DIR)training/rewards/weights.example.json"
 
 # Training shortcuts
 .PHONY: train-sft train-grpo experiment
 
 train-sft:
-	$(PYTHON) 25-train-sft.py --run-id $(RUN_ID) --base-dir $(BASE_DIR) --models-dir models
+	$(PYTHON) "$(MAKEFILE_DIR)25-train-sft.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR)" --models-dir "$(MAKEFILE_DIR)models"
 
 train-grpo:
-	cd models/$(RUN_ID) && $(PYTHON) ../../pipe/26-train-grpo.py --run-id $(RUN_ID) --use-aggregator --weights ../../pipe/training/rewards/weights.example.json
+	cd "$(MAKEFILE_DIR)models/$(RUN_ID)" && $(PYTHON) "$(MAKEFILE_DIR)26-train-grpo.py" --run-id $(RUN_ID) --use-aggregator --weights "$(MAKEFILE_DIR)training/rewards/weights.example.json"
 
 experiment:
-	$(PYTHON) 27-experiment.py --run-id $(RUN_ID) --base-dir $(BASE_DIR) --stage auto
+	$(PYTHON) "$(MAKEFILE_DIR)27-experiment.py" --run-id $(RUN_ID) --base-dir "$(BASE_DIR)" --stage auto
 
 
 

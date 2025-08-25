@@ -44,6 +44,9 @@ step-*.csv
 *.parquet
 *.csv
 *.jsonl
+# Keep the small demo dataset in version control
+!example-dataset.jsonl
+
 
 # Training/evaluation outputs (when running 25/26/27 or reward evals)
 checkpoints/

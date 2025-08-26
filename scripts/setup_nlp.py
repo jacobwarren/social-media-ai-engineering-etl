@@ -28,6 +28,7 @@ def main() -> int:
     if nltk is not None:
         try:
             nltk.download('punkt', quiet=True)
+            nltk.download('punkt_tab', quiet=True)
             nltk.download('stopwords', quiet=True)
             nltk.download('vader_lexicon', quiet=True)
             print("Downloaded NLTK resources: punkt, stopwords, vader_lexicon")

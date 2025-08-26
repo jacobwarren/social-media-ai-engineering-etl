@@ -34,17 +34,21 @@ if args.run_id == "latest":
     if latest:
         args.run_id = latest
 
-# Discover dataset CSV via manifest when run-id is provided (use common IO helper)
+# Discover dataset CSV via manifest when run-id is provided
 csv_path = args.csv
 if args.run_id:
     try:
+        # Resolve run-id and base dir (ensures directory exists); ignore returned path
         from utils.io import resolve_io
-        discovered, _, _ = resolve_io(stage="25-train-sft", run_id=args.run_id, base_dir=args.base_dir, explicit_in=csv_path, prior_stage="23-split", std_name=None)
-        if isinstance(discovered, list):
-            preferred = [p for p in discovered if p.endswith("23-sft.csv")] or discovered
+        _, _, _ = resolve_io(stage="25-train-sft", run_id=args.run_id, base_dir=args.base_dir, explicit_in=csv_path, prior_stage="23-split", std_name=None)
+        # Prefer SFT CSV from 23-split outputs
+        m = read_manifest(args.run_id, args.base_dir)
+        stage = m.get("stages", {}).get("23-split", {})
+        outs = stage.get("outputs") or stage.get("output") or []
+        candidates = outs if isinstance(outs, list) else ([outs] if isinstance(outs, str) else [])
+        preferred = [p for p in candidates if isinstance(p, str) and p.endswith("23-sft.csv")] or candidates
+        if preferred:
             csv_path = preferred[0]
-        else:
-            csv_path = discovered
         logger.info(f"Using training CSV: {csv_path}")
     except Exception:
         logger.warning("Falling back to --csv; manifest discovery failed")
@@ -64,7 +68,7 @@ else:
 ##############################################################################
 # 2) Load Base Model
 ##############################################################################
-base_model = "Qwen/Qwen2.5-7B-Instruct"
+base_model = "Qwen/Qwen3-14B"
 # final name for saving
 if args.run_id:
     os.makedirs(os.path.join(args.models_dir, args.run_id), exist_ok=True)
@@ -88,7 +92,7 @@ model, tokenizer = FastLanguageModel.from_pretrained(
 ##############################################################################
 # 3) Load CSV Data
 ##############################################################################
-csv_path = args.csv  # Path to your instruction dataset
+# Use the discovered csv_path (do not overwrite with args.csv)
 raw_dataset = load_dataset("csv", data_files=csv_path)["train"]
 
 ##############################################################################

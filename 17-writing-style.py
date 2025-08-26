@@ -108,6 +108,7 @@ except Exception:
 if os.environ.get("PIPE_DOWNLOAD_NLTK", "0") == "1":
     try:
         nltk.download('punkt', quiet=True)
+        nltk.download('punkt_tab', quiet=True)
         nltk.download('stopwords', quiet=True)
         nltk.download('vader_lexicon', quiet=True)
     except Exception:
@@ -675,7 +676,10 @@ def analyze_post(post, author_common_phrases):
     post['vocabulary_usage'] = _mod_vocab(text)
     post['line_breaks'], post['avg_line_breaks'] = _mod_line_breaks(text)
     post['punctuation_usage'] = _mod_punct(text)
-    post['divider_style'] = _mod_detect_dividers(text)
+    if PERFORMANCE_CONFIG['use_parallel_processing']:
+        post['divider_style'] = detect_divider_styles(text)
+    else:
+        post['divider_style'] = _mod_detect_dividers(text, CTX) if CTX else detect_divider_styles(text)
     # Use mp-safe bullet detection when multiprocessing to avoid pickling CTX
     if PERFORMANCE_CONFIG['use_parallel_processing']:
         post['bullet_styles'] = detect_bullet_styles(text)

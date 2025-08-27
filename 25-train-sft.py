@@ -235,29 +235,55 @@ eval_dataset_f = eval_dataset.filter(filter_by_max_length)
 ##############################################################################
 from transformers import TrainingArguments
 
-training_args = TrainingArguments(
-    output_dir="./sft-results",
-    num_train_epochs=1,
-    do_eval=True,
-    per_device_train_batch_size=16,
-    gradient_accumulation_steps=1,
-    per_device_eval_batch_size=4,
-    optim="adamw_torch",
-    evaluation_strategy="epoch",
-    save_strategy="epoch",
-    logging_steps=10,
-    learning_rate=2e-4,
-    load_best_model_at_end=True,
-    fp16=False,
-    bf16=True,
-    max_steps=-1,
-    warmup_ratio=0.1,
-    weight_decay=0.01,
-    max_grad_norm=1,
-    lr_scheduler_type="cosine",
-    report_to="wandb",
-    run_name="GrowLlama-run",
-)
+# Handle Transformers API change: evaluation_strategy -> eval_strategy (4.55+)
+try:
+    training_args = TrainingArguments(
+        output_dir="./sft-results",
+        num_train_epochs=1,
+        do_eval=True,
+        per_device_train_batch_size=16,
+        gradient_accumulation_steps=1,
+        per_device_eval_batch_size=4,
+        optim="adamw_torch",
+        eval_strategy="epoch",
+        save_strategy="epoch",
+        logging_steps=10,
+        learning_rate=2e-4,
+        load_best_model_at_end=True,
+        fp16=False,
+        bf16=True,
+        max_steps=-1,
+        warmup_ratio=0.1,
+        weight_decay=0.01,
+        max_grad_norm=1,
+        lr_scheduler_type="cosine",
+        report_to="wandb",
+        run_name="GrowLlama-run",
+    )
+except TypeError:
+    training_args = TrainingArguments(
+        output_dir="./sft-results",
+        num_train_epochs=1,
+        do_eval=True,
+        per_device_train_batch_size=16,
+        gradient_accumulation_steps=1,
+        per_device_eval_batch_size=4,
+        optim="adamw_torch",
+        evaluation_strategy="epoch",
+        save_strategy="epoch",
+        logging_steps=10,
+        learning_rate=2e-4,
+        load_best_model_at_end=True,
+        fp16=False,
+        bf16=True,
+        max_steps=-1,
+        warmup_ratio=0.1,
+        weight_decay=0.01,
+        max_grad_norm=1,
+        lr_scheduler_type="cosine",
+        report_to="wandb",
+        run_name="GrowLlama-run",
+    )
 
 ##############################################################################
 # 12) Initialize SFTTrainer

@@ -5,10 +5,10 @@ from unsloth import is_bfloat16_supported  # type: ignore
 from trl import GRPOConfig, GRPOTrainer  # type: ignore
 
 
-def build_training_args(output_dir: str = "grpo-results") -> GRPOConfig:
+def build_training_args(output_dir: str = "grpo-results", use_vllm: bool = True) -> GRPOConfig:
     return GRPOConfig(
         # General settings
-        use_vllm=True,
+        use_vllm=use_vllm,
         learning_rate=1e-6,
         adam_beta1=0.9,
         adam_beta2=0.99,

@@ -276,34 +276,41 @@ I believe that every scientific invention or discovery has already been discusse
 <|im_start|>assistant
 """
 ]
-# Create a sampling params object.
-sampling_params = SamplingParams(
-    max_tokens=8192,
-    temperature=1.5,
-    min_p=0.1
-)
+def main():
+    # Create a sampling params object.
+    sampling_params = SamplingParams(
+        max_tokens=8192,
+        temperature=1.5,
+        min_p=0.1
+    )
 
-# Create an LLM.
-llm = LLM(model=model_path)
-# Generate texts from the prompts. The output is a list of RequestOutput objects
-# that contain the prompt, generated text, and other information.
-outputs = llm.generate(
-    prompts, 
-    sampling_params,
-)
-# Print the outputs.
-print("\nGenerated Outputs:\n" + "-" * 60)
-for output in outputs:
-    prompt = output.prompt
-    generated_text = output.outputs[0].text
-    print(f"""Prompt:
+    # Create an LLM.
+    logger.info(f"Loading model from: {model_path}")
+    llm = LLM(model=model_path)
+    logger.info("Model loaded successfully")
 
-{prompt}
+    # Generate texts from the prompts and save to CSV
+    logger.info(f"Generating {len(prompts)} examples...")
+    outputs = llm.generate(prompts, sampling_params)
+    logger.info("Generation complete")
 
-""")
-    print(f"""Output:
+    # Create output CSV filename using run-id
+    import csv
+    out_csv = f"27-{args.run_id.upper()}-examples.csv"
+    logger.info(f"Saving to: {out_csv}")
 
-{generated_text}
+    with open(out_csv, "w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=["prompt", "generated"])
+        writer.writeheader()
+        for output in outputs:
+            writer.writerow({
+                "prompt": output.prompt,
+                "generated": output.outputs[0].text,
+            })
 
-""")
-    print("-" * 60)
+    logger.info(f"Saved {len(outputs)} generations to {out_csv}")
+    print(f"Saved {len(outputs)} generations to {out_csv}")
+
+
+if __name__ == "__main__":
+    main()

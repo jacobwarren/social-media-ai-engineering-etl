@@ -20,8 +20,7 @@ git clone https://github.com/jacobwarren/social-media-ai-engineering-etl.git
 cd social-media-ai-engineering-etl
 make setup                                              # install package + dev tools
 make setup-nlp                                          # one-time: download spaCy model + NLTK data
-make smoke                                              # smoke test for 1 -> 2 -> 3 using run-id ergonomics
-make run-e2e RUN_ID=demo DATASET=example-dataset.jsonl  # tail-only: 17-18, 22-23 (assumes features already exist for RUN_ID)
+make run-e2e RUN_ID=demo DATASET=example-dataset.jsonl  # runs entire pipeline end-to-end including studies
 ```
 
 Inputs: use the tiny demo dataset `./example-dataset.jsonl`.
